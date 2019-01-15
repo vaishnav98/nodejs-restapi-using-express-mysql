@@ -1,5 +1,6 @@
 var http = require("http");
 var express = require('express');
+var cors= require('cors');
 var app = express();
 var mysql= require('mysql');
 var bodyParser = require('body-parser');
@@ -17,7 +18,7 @@ connection.connect(function(err) {
   console.log('You are now connected with mysql database...')
 })
 //end mysql connection
-
+app.use(cors());
 //start body-parser configuration
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
@@ -26,7 +27,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 //end body-parser configuration
 
 //create app server
-var server = app.listen(3000,  "127.0.0.1", function () {
+var server = app.listen(80,  "127.0.0.1", function () {
 
   var host = server.address().address
   var port = server.address().port
@@ -44,14 +45,16 @@ app.get('/client', function (req, res) {
 });
 //rest api to get a single customer data
 app.get('/client/:id', function (req, res) {
+
    connection.query('select * from MQTTClientData where ClientID=?', [req.params.id], function (error, results, fields) {
 	  if (error) throw error;
-	  res.end(JSON.stringify(results));
+	  res.end(JSON.stringify(results[0]));
 	});
 });
 
 //rest api to get all customers
 app.get('/data/:id', function (req, res) {
+  console.log(req.params.id)
    connection.query('select * from MQTTDataExpanded where ClientID=?', [req.params.id], function (error, results, fields) {
 	  if (error) throw error;
 	  res.end(JSON.stringify(results));
@@ -61,7 +64,7 @@ app.get('/data/:id', function (req, res) {
 app.get('/datalatest/:id', function (req, res) {
    connection.query('select * from MQTTDataExpanded where ClientID=? ORDER BY TimeStamp DESC LIMIT 1', [req.params.id], function (error, results, fields) {
 	  if (error) throw error;
-	  res.end(JSON.stringify(results));
+	  res.end(JSON.stringify(results[0]));
 	});
 });
 
